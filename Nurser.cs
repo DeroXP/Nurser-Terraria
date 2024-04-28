@@ -10,12 +10,12 @@ namespace Nurser
 {
     public class HealKeyMod : Mod
     {
-        public static ModKeybind HealKey;
+        public static ModKeybind HealKey; //mod config so Settings->Controls->Nurser->HealKey (change it from >UnBound< to any key you like.)
         public static int maxCoinCost = 2000000;
 
         public override void Load()
         {
-            HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G);
+            HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G); // pretty sure this doesn't do much
         }
     }
 
@@ -37,7 +37,7 @@ namespace Nurser
                         {
                             Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.Blood);
                         }
-                        Player.AddBuff(ModContent.BuffType<HeartAche>(), 60 * 60);
+                        Player.AddBuff(ModContent.BuffType<HeartAche>(), 60 * 60); // a minute or sixty seconds
                     }
                     else
                     {
@@ -105,6 +105,7 @@ namespace Nurser
 			}
 			
 			SubtractCoinsFromPiggyBank(amount - GetTotalCoins(Main.LocalPlayer.inventory));
+   			//not sure if these work they might.
 		}
 
         private bool SubtractCoinsFromInventory(int amount)
