@@ -11,7 +11,7 @@ namespace Nurser
     public class HealKeyMod : Mod
     {
         public static ModKeybind HealKey; //mod config so Settings->Controls->Nurser->HealKey (change it from >UnBound< to any key you like.)
-        public static int maxCoinCost = 2000000;
+        public static int maxCoinCost = 2000000; // 2 platnium
 
         public override void Load()
         {
