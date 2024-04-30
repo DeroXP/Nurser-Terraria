@@ -18,13 +18,20 @@ namespace Nurser
         [System.ComponentModel.DefaultValue(120)]
         [Range(60, 600)]
         public int HeartAcheDuration;
+
+        [LabelKey("$Config.MaxCoinCost.Label")]
+        [TooltipKey("$Config.MaxCoinCost.Tooltip")]
+        [System.ComponentModel.DefaultValue(2000000)]//two plat
+        [Range(60, 600)]
+
+        public int MaxCoinCost;
     }
 
     public class HealKeyMod : Mod
     {
         #pragma warning disable CA2211
         public static ModKeybind HealKey;
-        public static int maxCoinCost = 2000000;
+        public static int maxCoinCost = ModContent.GetInstance<Config>().MaxCoinCost;
         public override void Load()
         {
             HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G);
@@ -86,159 +93,142 @@ namespace Nurser
         private int CalculateCoinCost(int currentHealth, int maxHealth)
         {
             float healthPercentage = (float)currentHealth / maxHealth;
-            int coinCost = (int)(HealKeyMod.maxCoinCost * (1f - healthPercentage));
+            int coinCost = (int)Math.Ceiling(HealKeyMod.maxCoinCost * (1f - healthPercentage));
             return coinCost;
         }
 
         private bool HasEnoughCoins(int amount)
         {
-            int totalCoins = GetTotalCoins(Main.LocalPlayer.inventory);
-            if (totalCoins >= amount)
-            {
-                return true;
-            }
-            else
-            {
-                totalCoins += GetTotalCoins(Main.LocalPlayer.bank.item);
-                return totalCoins >= amount;
-            }
+            int totalCoins = GetTotalCoins(Main.LocalPlayer.inventory) + GetTotalCoins(Main.LocalPlayer.bank.item);
+            return totalCoins >= amount;
         }
 
         private int GetTotalCoins(Item[] items)
         {
             int totalCoins = 0;
-            for (int i = 0; i < items.Length; i++)
+            foreach (Item item in items)
             {
-                if (items[i].type == ItemID.CopperCoin)
+                switch (item.type)
                 {
-                    totalCoins += items[i].stack;
-                }
-                else if (items[i].type == ItemID.SilverCoin)
-                {
-                    totalCoins += items[i].stack * 100;
-                }
-                else if (items[i].type == ItemID.GoldCoin)
-                {
-                    totalCoins += items[i].stack * 10000;
-                }
-                else if (items[i].type == ItemID.PlatinumCoin)
-                {
-                    totalCoins += items[i].stack * 1000000;
+                    case ItemID.CopperCoin:
+                        totalCoins += item.stack;
+                        break;
+                    case ItemID.SilverCoin:
+                        totalCoins += item.stack * 100;
+                        break;
+                    case ItemID.GoldCoin:
+                        totalCoins += item.stack * 10000;
+                        break;
+                    case ItemID.PlatinumCoin:
+                        totalCoins += item.stack * 1000000;
+                        break;
                 }
             }
             return totalCoins;
         }
 
         private void SubtractCoins(int amount)
-		{
-			if (SubtractCoinsFromInventory(amount))
-			{
-				return;
-			}
-			
-			SubtractCoinsFromPiggyBank(amount - GetTotalCoins(Main.LocalPlayer.inventory));
-		}
+        {
+            if (SubtractCoinsFromInventory(amount))
+            {
+                return;
+            }
+            SubtractCoinsFromPiggyBank(amount - GetTotalCoins(Main.LocalPlayer.bank.item));
+        }
 
         private bool SubtractCoinsFromInventory(int amount)
-		{
-			for (int i = 0; i < Main.LocalPlayer.inventory.Length; i++)
-			{
-				if (Main.LocalPlayer.inventory[i].type == ItemID.CopperCoin)
-				{
-					int coinsToSubtract = Math.Min(Main.LocalPlayer.inventory[i].stack, amount);
-					Main.LocalPlayer.inventory[i].stack -= coinsToSubtract;
-					amount -= coinsToSubtract;
-				}
-				else if (Main.LocalPlayer.inventory[i].type == ItemID.SilverCoin)
-				{
-					int coinsToSubtract = Math.Min(amount / 100, Main.LocalPlayer.inventory[i].stack);
-					Main.LocalPlayer.inventory[i].stack -= coinsToSubtract;
-					amount -= coinsToSubtract * 100;
-				}
-				else if (Main.LocalPlayer.inventory[i].type == ItemID.GoldCoin)
-				{
-					int coinsToSubtract = Math.Min(amount / 10000, Main.LocalPlayer.inventory[i].stack);
-					Main.LocalPlayer.inventory[i].stack -= coinsToSubtract;
-					amount -= coinsToSubtract * 10000;
-				}
-				else if (Main.LocalPlayer.inventory[i].type == ItemID.PlatinumCoin)
-				{
-					int coinsToSubtract = Math.Min(amount / 1000000, Main.LocalPlayer.inventory[i].stack);
-					Main.LocalPlayer.inventory[i].stack -= coinsToSubtract;
-					amount -= coinsToSubtract * 1000000;
-				}
-
-				if (amount <= 0)
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
+        {
+            foreach (Item item in Main.LocalPlayer.inventory)
+            {
+                if (item.type == ItemID.CopperCoin)
+                {
+                    int coinsToSubtract = Math.Min(amount, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+                else if (item.type == ItemID.SilverCoin)
+                {
+                    int coinsToSubtract = Math.Min(amount / 100, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract * 100;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+                else if (item.type == ItemID.GoldCoin)
+                {
+                    int coinsToSubtract = Math.Min(amount / 10000, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract * 10000;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+                else if (item.type == ItemID.PlatinumCoin)
+                {
+                    int coinsToSubtract = Math.Min(amount / 1000000, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract * 1000000;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         private void SubtractCoinsFromPiggyBank(int amount)
         {
-            for (int i = 0; i < Main.LocalPlayer.bank.item.Length; i++)
+            foreach (Item item in Main.LocalPlayer.bank.item)
             {
-                if (Main.LocalPlayer.bank.item[i].type == ItemID.CopperCoin)
+                if (item.type == ItemID.CopperCoin)
                 {
-                    if (Main.LocalPlayer.bank.item[i].stack >= amount)
+                    int coinsToSubtract = Math.Min(amount, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract;
+                    if (amount <= 0)
                     {
-                        Main.LocalPlayer.bank.item[i].stack -= amount;
                         return;
-                    }
-                    else
-                    {
-                        amount -= Main.LocalPlayer.bank.item[i].stack;
-                        Main.LocalPlayer.bank.item[i].stack = 0;
                     }
                 }
-                else if (Main.LocalPlayer.bank.item[i].type == ItemID.SilverCoin)
+                else if (item.type == ItemID.SilverCoin)
                 {
-                    int coinsToSubtract = amount / 100;
-                    if (Main.LocalPlayer.bank.item[i].stack >= coinsToSubtract)
+                    int coinsToSubtract = Math.Min(amount / 100, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract * 100;
+                    if (amount <=0)
                     {
-                        Main.LocalPlayer.bank.item[i].stack -= coinsToSubtract;
                         return;
-                    }
-                    else
-                    {
-                        amount -= Main.LocalPlayer.bank.item[i].stack * 100;
-                        Main.LocalPlayer.bank.item[i].stack = 0;
                     }
                 }
-                else if (Main.LocalPlayer.bank.item[i].type == ItemID.GoldCoin)
+                else if (item.type == ItemID.GoldCoin)
                 {
-                    int coinsToSubtract = amount / 10000;
-                    if (Main.LocalPlayer.bank.item[i].stack >= coinsToSubtract)
+                    int coinsToSubtract = Math.Min(amount / 10000, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract * 10000;
+                    if (amount <= 0)
                     {
-                        Main.LocalPlayer.bank.item[i].stack -= coinsToSubtract;
                         return;
-                    }
-                    else
-                    {
-                        amount -= Main.LocalPlayer.bank.item[i].stack * 10000;
-                        Main.LocalPlayer.bank.item[i].stack = 0;
                     }
                 }
-                else if (Main.LocalPlayer.bank.item[i].type == ItemID.PlatinumCoin)
+                else if (item.type == ItemID.PlatinumCoin)
                 {
-                    int coinsToSubtract = amount / 1000000;
-                    if (Main.LocalPlayer.bank.item[i].stack >= coinsToSubtract)
+                    int coinsToSubtract = Math.Min(amount / 1000000, item.stack);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract * 1000000;
+                    if (amount <= 0)
                     {
-                        Main.LocalPlayer.bank.item[i].stack -= coinsToSubtract;
                         return;
-                    }
-                    else
-                    {
-                        amount -= Main.LocalPlayer.bank.item[i].stack * 1000000;
-                        Main.LocalPlayer.bank.item[i].stack = 0;
                     }
                 }
             }
         }
     }
 }
-
-//might need to fix how this works when people are playing multiplayer.
