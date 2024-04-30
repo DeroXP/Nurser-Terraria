@@ -8,6 +8,11 @@ Buffs: {
 }
 
 Config: {
+	MaxCoinCost: {
+		Label: Max Coin Cost
+		Tooltip: Sets the maximum amount of coins that can be used to heal (Default 2 Platnium).
+	}
+
 	HeartAcheDuration: {
 		Label: Duration for HeartAche Buff (in seconds)
 		Tooltip: Sets the duration for the HeartAche buff in seconds.
