@@ -6,6 +6,7 @@ using Terraria.ID;
 using System;
 using Nurser.Buffs;
 using Terraria.ModLoader.Config;
+using System.Linq;
 
 namespace Nurser
 {
@@ -21,16 +22,19 @@ namespace Nurser
 
         [LabelKey("$Config.MaxCoinCost.Label")]
         [TooltipKey("$Config.MaxCoinCost.Tooltip")]
-        [System.ComponentModel.DefaultValue(2000000)]
-
+        [System.ComponentModel.DefaultValue(50000)]
         public int MaxCoinCost;
 
         [LabelKey("$Config.HealthThreshold.Label")]
         [TooltipKey("$Config.HealthThreshold.Tooltip")]
         [System.ComponentModel.DefaultValue(20)]
         [Range(1, 100)]
-
         public int HealthThreshold;
+
+        [LabelKey("$Config.RequireBoss.Label")]
+        [TooltipKey("$Config.RequireBoss.Tooltip")]
+        [System.ComponentModel.DefaultValue(false)]
+        public bool RequireBoss;
     }
 
     public class HealKeyMod : Mod
@@ -44,6 +48,27 @@ namespace Nurser
         }
     }
 
+    public class NPCNuser : GlobalNPC
+    {
+        public static bool bossActive = false;
+
+        public override void PostAI(NPC entity)
+        {
+            int[] bosses = { NPCID.KingSlime, NPCID.EyeofCthulhu, NPCID.EaterofWorldsHead, NPCID.BrainofCthulhu, NPCID.QueenBee, NPCID.SkeletronHead, NPCID.WallofFlesh, NPCID.Retinazer, NPCID.Spazmatism, NPCID.TheDestroyer, NPCID.SkeletronPrime, NPCID.Plantera, NPCID.Golem, NPCID.DukeFishron, NPCID.CultistBoss, NPCID.MoonLordCore };
+
+            int npcType = entity.type;
+
+            if (!entity.friendly && bosses.Contains(npcType) && entity.active)
+            {
+                bossActive = true;
+            }
+            else
+            {
+                bossActive = false;
+            }
+        }
+    }
+
     public class HealKeyPlayer : ModPlayer
     {
         bool hasDisplayedMessage = false;
@@ -53,6 +78,16 @@ namespace Nurser
 
             if (HealKeyMod.HealKey.JustPressed || IsHealthBelowThreshold(config.HealthThreshold / 100.0f))
             {
+                if (config.RequireBoss && !NPCNuser.bossActive)
+                {
+                    if (!hasDisplayedMessage)
+                    {
+                        Main.NewText("You can't heal right now. Wait until a boss is active.", 255, 50, 50);
+                        hasDisplayedMessage = true;
+                    }
+                    return;
+                }
+
                 if (!Player.HasBuff<HeartAche>())
                 {
                     int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2);
