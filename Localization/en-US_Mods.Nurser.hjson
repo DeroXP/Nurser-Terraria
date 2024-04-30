@@ -1,0 +1,17 @@
+"Keybinds.Heal Key.DisplayName": Heal  Key
+
+Buffs: {
+	HeartAche: {
+		DisplayName: Heart Ache
+		Description: Your Heart Burns From The Overload Of Health.
+	}
+}
+
+Config: {
+	HeartAcheDuration: {
+		Label: Duration for HeartAche Buff (in seconds)
+		Tooltip: Sets the duration for the HeartAche buff in seconds.
+	}
+}
+
+Configs.Config.DisplayName: Config
