@@ -1,2 +1,2 @@
 # Nurser-Terraria
-made in a hour just to see how fast i could make a mod you can take it and make it your own if you want atleast try to make it better than i did, basically just the nurse but allowed everywhere
+I made this pretty quicly it is at 1.3.3.4 right now might need to fix the math again but it's pretty much already perfect, and also for aspioring devs this is more a tutorial to see how buffs and configs work on the newest version of tmodloader.
