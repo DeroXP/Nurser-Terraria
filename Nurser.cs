@@ -5,50 +5,82 @@ using Terraria.GameInput;
 using Terraria.ID;
 using System;
 using Nurser.Buffs;
+using Terraria.ModLoader.Config;
 
 namespace Nurser
 {
+    public class Config : ModConfig
+    {
+        public override ConfigScope Mode => ConfigScope.ServerSide;
+
+        [LabelKey("$Config.HeartAcheDuration.Label")]
+        [TooltipKey("$Config.HeartAcheDuration.Tooltip")]
+        [System.ComponentModel.DefaultValue(120)]
+        [Range(60, 600)]
+        public int HeartAcheDuration;
+    }
+
     public class HealKeyMod : Mod
     {
-        public static ModKeybind HealKey; //mod config so Settings->Controls->Nurser->HealKey (change it from >UnBound< to any key you like.)
-        public static int maxCoinCost = 2000000; // 2 platnium
-
+        #pragma warning disable CA2211
+        public static ModKeybind HealKey;
+        public static int maxCoinCost = 2000000;
         public override void Load()
         {
-            HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G); // pretty sure this doesn't do much
+            HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G);
         }
     }
 
     public class HealKeyPlayer : ModPlayer
     {
+        bool hasDisplayedMessage = false;
         public override void ProcessTriggers(TriggersSet triggers)
         {
-            if (HealKeyMod.HealKey.JustPressed)
+            if (HealKeyMod.HealKey.JustPressed || IsHealthBelowThreshold(0.2f))
             {
                 if (!Player.HasBuff<HeartAche>())
                 {
                     int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2);
                     if (HasEnoughCoins(coinCost))
                     {
-                        Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2;
-                        Main.LocalPlayer.HealEffect(Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife);
-                        SubtractCoins(coinCost);
-                        for (int i = 0; i < 10; i++)
+                        if (!Main.LocalPlayer.dead)
                         {
-                            Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.Blood);
+                            Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2;
+                            Main.LocalPlayer.HealEffect(Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife);
+                            SubtractCoins(coinCost);
+                            for (int i = 0; i < 10; i++)
+                            {
+                                Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.Blood);
+                            }
+                            int buffDuration = ModContent.GetInstance<Config>().HeartAcheDuration * 60;
+                            Player.AddBuff(ModContent.BuffType<HeartAche>(), buffDuration);
+                            hasDisplayedMessage = false;
                         }
-                        Player.AddBuff(ModContent.BuffType<HeartAche>(), 60 * 60); // a minute or sixty seconds
                     }
                     else
                     {
-                        Main.NewText("You don't have enough coins to perform this action!", 255, 50, 50);
+                        if (!hasDisplayedMessage)
+                        {
+                            Main.NewText("You don't have enough coins to perform this action!", 255, 50, 50);
+                            hasDisplayedMessage = true;
+                        }
                     }
                 }
                 else
                 {
-                    Main.NewText("You can't heal right now. Wait until HeartAche wears off.", 255, 50, 50);
+                    if (!hasDisplayedMessage)
+                    {
+                        Main.NewText("You can't heal right now. Wait until HeartAche wears off.", 255, 50, 50);
+                        hasDisplayedMessage = true;
+                    }
                 }
             }
+        }
+
+        private bool IsHealthBelowThreshold(float threshold)
+        {
+            float healthPercentage = (float)Main.LocalPlayer.statLife / Main.LocalPlayer.statLifeMax2;
+            return healthPercentage <= threshold;
         }
 
         private int CalculateCoinCost(int currentHealth, int maxHealth)
@@ -105,7 +137,6 @@ namespace Nurser
 			}
 			
 			SubtractCoinsFromPiggyBank(amount - GetTotalCoins(Main.LocalPlayer.inventory));
-   			//not sure if these work they might.
 		}
 
         private bool SubtractCoinsFromInventory(int amount)
