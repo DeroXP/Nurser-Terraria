@@ -36,5 +36,6 @@ Configs: {
 		MaxCoinCost.Tooltip: Sets the maximum amount of coins that can be used to heal (Default 50 Gold).
 		HealthThreshold.Tooltip: Sets the health threshold for the heal to be triggered automactically (Default 20%).
 		RequireBoss.Tooltip: If enabled, the heal will only be triggered if the player is in a boss fight.
+		Headers.Configs: Customizations
 	}
 }
