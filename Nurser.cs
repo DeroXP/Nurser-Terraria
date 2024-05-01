@@ -14,6 +14,8 @@ namespace Nurser
     {
         public override ConfigScope Mode => ConfigScope.ServerSide;
 
+        [Header("Configs")]
+
         [LabelKey("$Config.HeartAcheDuration.Label")]
         [TooltipArgs("$Config.HeartAcheDuration.Tooltip")]
         [System.ComponentModel.DefaultValue(120)]
