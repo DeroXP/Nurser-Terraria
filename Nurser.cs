@@ -15,24 +15,24 @@ namespace Nurser
         public override ConfigScope Mode => ConfigScope.ServerSide;
 
         [LabelKey("$Config.HeartAcheDuration.Label")]
-        [TooltipKey("$Config.HeartAcheDuration.Tooltip")]
+        [TooltipArgs("$Config.HeartAcheDuration.Tooltip")]
         [System.ComponentModel.DefaultValue(120)]
-        [Range(30, 600)]
+        [Range(15, 600)]
         public int HeartAcheDuration;
 
         [LabelKey("$Config.MaxCoinCost.Label")]
-        [TooltipKey("$Config.MaxCoinCost.Tooltip")]
+        [TooltipArgs("$Config.MaxCoinCost.Tooltip")]
         [System.ComponentModel.DefaultValue(50000)]
         public int MaxCoinCost;
 
         [LabelKey("$Config.HealthThreshold.Label")]
-        [TooltipKey("$Config.HealthThreshold.Tooltip")]
+        [TooltipArgs("$Config.HealthThreshold.Tooltip")]
         [System.ComponentModel.DefaultValue(20)]
         [Range(1, 100)]
         public int HealthThreshold;
 
         [LabelKey("$Config.RequireBoss.Label")]
-        [TooltipKey("$Config.RequireBoss.Tooltip")]
+        [TooltipArgs("$Config.RequireBoss.Tooltip")]
         [System.ComponentModel.DefaultValue(false)]
         public bool RequireBoss;
     }
@@ -58,7 +58,7 @@ namespace Nurser
 
             int npcType = entity.type;
 
-            if (!entity.friendly && bosses.Contains(npcType) && entity.active)
+            if (!entity.friendly && bosses.Contains(npcType) && entity.active || entity.boss && entity.active)
             {
                 bossActive = true;
             }
