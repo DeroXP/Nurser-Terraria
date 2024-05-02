@@ -18,9 +18,9 @@ Config: {
 		Tooltip: Sets the health threshold for the heal to be triggered automactically (Default 20%).
 	}
 
-	MaxCoinCost: {
-		Label: Max Coin Cost
-		Tooltip: Sets the maximum amount of coins that can be used to heal (Default 50 Gold).
+	CoinCostPerHealth: {
+		Label: Cost Per Health
+		Tooltip: Sets the amount of coins that will be used to heal per health point (Default 1 silver coins).
 	}
 
 	HeartAcheDuration: {
@@ -33,7 +33,7 @@ Configs: {
 	Config: {
 		DisplayName: Config
 		HeartAcheDuration.Tooltip: Sets the duration for the HeartAche buff in seconds.
-		MaxCoinCost.Tooltip: Sets the maximum amount of coins that can be used to heal (Default 50 Gold).
+		CoinCostPerHealth.Tooltip: Sets the amount of coins that will be used to heal per health point (Default 1 silver coins).
 		HealthThreshold.Tooltip: Sets the health threshold for the heal to be triggered automactically (Default 20%).
 		RequireBoss.Tooltip: If enabled, the heal will only be triggered if the player is in a boss fight.
 		Headers.Configs: Customizations
