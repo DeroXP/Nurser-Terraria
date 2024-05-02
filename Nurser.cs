@@ -7,6 +7,12 @@ using System;
 using Nurser.Buffs;
 using Terraria.ModLoader.Config;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Terraria.GameContent.NetModules;
+using Terraria.Chat;
+using Terraria.Net;
+using tModPorter.Rewriters;
+using Terraria.Audio;
 
 namespace Nurser
 {
@@ -22,10 +28,11 @@ namespace Nurser
         [Range(15, 600)]
         public int HeartAcheDuration;
 
-        [LabelKey("$Config.MaxCoinCost.Label")]
-        [TooltipArgs("$Config.MaxCoinCost.Tooltip")]
-        [System.ComponentModel.DefaultValue(50000)]
-        public int MaxCoinCost;
+        [LabelKey("$Config.CoinCostPerHealth.Label")]
+        [TooltipArgs("$Config.CoinCostPerHealth.Tooltip")]
+        [System.ComponentModel.DefaultValue(100)]
+        [Range(10, float.PositiveInfinity)]
+        public int CoinCostPerHealth;
 
         [LabelKey("$Config.HealthThreshold.Label")]
         [TooltipArgs("$Config.HealthThreshold.Tooltip")]
@@ -43,7 +50,6 @@ namespace Nurser
     {
         #pragma warning disable CA2211
         public static ModKeybind HealKey;
-        public static int maxCoinCost = ModContent.GetInstance<Config>().MaxCoinCost;
         public override void Load()
         {
             HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G);
@@ -73,11 +79,17 @@ namespace Nurser
 
     public class HealKeyPlayer : ModPlayer
     {
+        Config config = ModContent.GetInstance<Config>();
+
+        public override void OnEnterWorld()
+        {
+            Main.NewText("If you have an idea or issue/bug with this mods please go here and send a issue. (https://github.com/DeroXP/Nurser-Terraria/issues)", 255, 182, 193);
+            Main.NewText("{From Nurser Mod:} Press " + HealKeyMod.HealKey.GetAssignedKeys()[0] + " or when health is at " + config.HealthThreshold + "% health to heal.", 255, 182, 193);
+        }
+
         bool hasDisplayedMessage = false;
         public override void ProcessTriggers(TriggersSet triggers)
         {
-            Config config = ModContent.GetInstance<Config>();
-
             if (HealKeyMod.HealKey.JustPressed || IsHealthBelowThreshold(config.HealthThreshold / 100.0f))
             {
                 if (config.RequireBoss && !NPCNuser.bossActive)
@@ -92,20 +104,55 @@ namespace Nurser
 
                 if (!Player.HasBuff<HeartAche>())
                 {
-                    int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2);
+                    int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2, config.CoinCostPerHealth);
                     if (HasEnoughCoins(coinCost))
                     {
                         if (!Main.LocalPlayer.dead)
                         {
                             Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2;
-                            Main.LocalPlayer.HealEffect(Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife);
+
+                            int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife;
+
+                            int platinum = coinCost / 1000000;
+                            int gold = coinCost % 1000000 / 10000;
+                            int silver = coinCost % 10000 / 100;
+                            int copper = coinCost % 100;
+
+                            string message = $"You have regained 100% health. {platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins were spent.";
+                            Color messageColor = new(224, 224, 224);
+                            CombatText combatText = new();
+
+                            if (Main.netMode == NetmodeID.SinglePlayer)
+                            {
+                                Main.NewText(message, messageColor);
+
+                                //combatText.text = message;
+                                //combatText.color = messageColor;
+                                //combatText.lifeTime = 150;
+                                //combatText.scale = 2f;
+
+                                //CombatText.NewText(Main.LocalPlayer.getRect(), combatText.color, combatText.text);
+                            }
+                            else if (Main.netMode == NetmodeID.MultiplayerClient)// if multiplayer it will only show on the player who healed screen. (Maybe)
+                            {
+                                ChatMessage chatMessage = new(message);
+                                var packet = NetTextModule.SerializeClientMessage(chatMessage);
+                                NetManager.Instance.Broadcast(packet, -1);
+                            }
+
+                            Main.LocalPlayer.HealEffect(healedAmount);
+
                             SubtractCoins(coinCost);
+
                             for (int i = 0; i < 10; i++)
                             {
-                                Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.Blood);
+                                Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.HealingPlus);
+                                SoundEngine.PlaySound(SoundID.Item29);
                             }
+
                             int buffDuration = config.HeartAcheDuration * 60;
                             Player.AddBuff(ModContent.BuffType<HeartAche>(), buffDuration);
+
                             hasDisplayedMessage = false;
                         }
                     }
@@ -113,7 +160,12 @@ namespace Nurser
                     {
                         if (!hasDisplayedMessage)
                         {
-                            Main.NewText("You don't have enough coins to perform this action!", 255, 50, 50);
+                            int platinum = coinCost / 1000000;
+                            int gold = coinCost % 1000000 / 10000;
+                            int silver = coinCost % 10000 / 100;
+                            int copper = coinCost % 100;
+
+                            Main.NewText($"You don't have enough coins, {platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins needed!", 255, 50, 50);
                             hasDisplayedMessage = true;
                         }
                     }
@@ -135,10 +187,9 @@ namespace Nurser
             return healthPercentage <= threshold;
         }
 
-        private int CalculateCoinCost(int currentHealth, int maxHealth)
+        private int CalculateCoinCost(int currentHealth, int maxHealth, int coinCostPerHealth)
         {
-            float healthPercentage = (float)currentHealth / maxHealth;
-            int coinCost = (int)Math.Ceiling(HealKeyMod.maxCoinCost * (1f - healthPercentage));
+            int coinCost = (maxHealth - currentHealth) * coinCostPerHealth;
             return coinCost;
         }
 
