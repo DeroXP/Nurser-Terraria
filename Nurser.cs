@@ -84,7 +84,8 @@ namespace Nurser
         public override void OnEnterWorld()
         {
             Main.NewText("If you have an idea or issue/bug with this mods please go here and send a issue. (https://github.com/DeroXP/Nurser-Terraria/issues)", 255, 182, 193);
-            Main.NewText("{From Nurser Mod:} Press " + HealKeyMod.HealKey.GetAssignedKeys()[0] + " or when health is at " + config.HealthThreshold + "% health to heal.", 255, 182, 193);
+            Main.NewText("Sorry for the multiple updates, if you're wondering why is because I use this mod to figure out how newer versions work.", 255, 182, 193);
+            Main.NewText("{From Nurser Mod:} Press " + HealKeyMod.HealKey.GetAssignedKeys()[0] + " or when health is at " + config.HealthThreshold + "% health to heal.", 121, 6, 4);
         }
 
         bool hasDisplayedMessage = false;
@@ -230,7 +231,7 @@ namespace Nurser
             int copperCoins = amount % 100;
             int silverCoins = amount / 100 % 100;
             int goldCoins = amount / 10000 % 100;
-int platinumCoins = amount / 1000000;
+            int platinumCoins = amount / 1000000;
 
             SubtractCoinsFromInventory(ItemID.CopperCoin, copperCoins);
             SubtractCoinsFromInventory(ItemID.SilverCoin, silverCoins);
