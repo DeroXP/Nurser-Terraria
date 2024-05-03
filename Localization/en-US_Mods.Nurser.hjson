@@ -10,7 +10,7 @@ Buffs: {
 Config: {
 	RequireBoss: {
 		Label: Require Boss
-		Tooltip: If enabled, the heal will only be triggered if the player is in a boss fight.
+		Tooltip: If enabled, player can only heal if a boss NPC is active.
 	}
 
 	HealthThreshold: {
@@ -35,7 +35,7 @@ Configs: {
 		HeartAcheDuration.Tooltip: Sets the duration for the HeartAche buff in seconds.
 		CoinCostPerHealth.Tooltip: Sets the amount of coins that will be used to heal per health point (Default 1 silver coins).
 		HealthThreshold.Tooltip: Sets the health threshold for the heal to be triggered automactically (Default 20%).
-		RequireBoss.Tooltip: If enabled, the heal will only be triggered if the player is in a boss fight.
+		RequireBoss.Tooltip: If enabled, player can only heal if a boss NPC is active.
 		Headers.Configs: Customizations
 	}
 }
