@@ -8,17 +8,17 @@ using Nurser.Buffs;
 using Terraria.ModLoader.Config;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Terraria.GameContent.NetModules;
-using Terraria.Chat;
-using Terraria.Net;
 using tModPorter.Rewriters;
 using Terraria.Audio;
+using Terraria.Chat;
+using Terraria.GameContent.NetModules;
+using Terraria.Net;
 
 namespace Nurser
 {
     public class Config : ModConfig
     {
-        public override ConfigScope Mode => ConfigScope.ServerSide;
+        public override ConfigScope Mode => ConfigScope.ClientSide; //changed to client side for multiplayer bug fixes :(
 
         [Header("Configs")]
 
@@ -92,7 +92,7 @@ namespace Nurser
         {
             if (HealKeyMod.HealKey.JustPressed || IsHealthBelowThreshold(config.HealthThreshold / 100.0f))
             {
-                if (config.RequireBoss && !NPCNuser.bossActive)
+                if (config.RequireBoss &&!NPCNuser.bossActive)
                 {
                     if (!hasDisplayedMessage)
                     {
@@ -120,25 +120,27 @@ namespace Nurser
 
                             string message = $"You have regained 100% health. {platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins were spent.";
                             Color messageColor = new(224, 224, 224);
-                            CombatText combatText = new();
-
-                            if (Main.netMode == NetmodeID.SinglePlayer)
+                            CombatText combatText = new()
                             {
-                                Main.NewText(message, messageColor);
+                                text = message,
+                                color = messageColor,
+                                lifeTime = 150,
+                                scale = 2f
+                            };
+                            //if (Main.netMode == NetmodeID.SinglePlayer)
+                            //{
+                                //Main.NewText(message, messageColor);
+                            //}
+                            //else if (Main.netMode == NetmodeID.MultiplayerClient)// if multiplayer it will only show on the player who healed screen. (Maybe)
+                            //{
+                                //ChatMessage chatMessage = new(message);
+                                //var packet = NetTextModule.SerializeClientMessage(chatMessage);
+                                //NetManager.Instance.Broadcast(packet, -1);
+                            //}
 
-                                //combatText.text = message;
-                                //combatText.color = messageColor;
-                                //combatText.lifeTime = 150;
-                                //combatText.scale = 2f;
+                            //can be used for a client sided message (YOU WILL NEED TO FIX THE CODE YOURSELF!!!)
 
-                                //CombatText.NewText(Main.LocalPlayer.getRect(), combatText.color, combatText.text);
-                            }
-                            else if (Main.netMode == NetmodeID.MultiplayerClient)// if multiplayer it will only show on the player who healed screen. (Maybe)
-                            {
-                                ChatMessage chatMessage = new(message);
-                                var packet = NetTextModule.SerializeClientMessage(chatMessage);
-                                NetManager.Instance.Broadcast(packet, -1);
-                            }
+                            CombatText.NewText(Main.LocalPlayer.getRect(), combatText.color, combatText.text);
 
                             Main.LocalPlayer.HealEffect(healedAmount);
 
@@ -146,7 +148,7 @@ namespace Nurser
 
                             for (int i = 0; i < 10; i++)
                             {
-                                Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.HealingPlus);
+                                Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.CoralTorch);
                                 SoundEngine.PlaySound(SoundID.Item29);
                             }
 
@@ -228,7 +230,7 @@ namespace Nurser
             int copperCoins = amount % 100;
             int silverCoins = amount / 100 % 100;
             int goldCoins = amount / 10000 % 100;
-            int platinumCoins = amount / 1000000;
+int platinumCoins = amount / 1000000;
 
             SubtractCoinsFromInventory(ItemID.CopperCoin, copperCoins);
             SubtractCoinsFromInventory(ItemID.SilverCoin, silverCoins);
