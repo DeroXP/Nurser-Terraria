@@ -31,12 +31,12 @@ namespace Nurser
         [LabelKey("$Config.CoinCostPerHealth.Label")]
         [TooltipArgs("$Config.CoinCostPerHealth.Tooltip")]
         [System.ComponentModel.DefaultValue(100)]
-        [Range(10, float.PositiveInfinity)]
+        [Range(10, float.PositiveInfinity)]//close to infinite as possible since terraria or C# has something like math.huge
         public int CoinCostPerHealth;
 
         [LabelKey("$Config.HealthThreshold.Label")]
         [TooltipArgs("$Config.HealthThreshold.Tooltip")]
-        [System.ComponentModel.DefaultValue(20)]
+        [System.ComponentModel.DefaultValue(20)] //this one sometimes works in multiplayer
         [Range(1, 100)]
         public int HealthThreshold;
 
@@ -127,7 +127,7 @@ namespace Nurser
                                 color = messageColor,
                                 lifeTime = 150,
                                 scale = 2f
-                            };
+                            };// i recommend for something like taking money away you use combatText so its looks similar to when buying a item for NPC's
                             //if (Main.netMode == NetmodeID.SinglePlayer)
                             //{
                                 //Main.NewText(message, messageColor);
@@ -139,7 +139,7 @@ namespace Nurser
                                 //NetManager.Instance.Broadcast(packet, -1);
                             //}
 
-                            //can be used for a client sided message (YOU WILL NEED TO FIX THE CODE YOURSELF!!!)
+                            //can be used for a multiplayer client sided message (YOU WILL NEED TO FIX THE CODE YOURSELF!!!)
 
                             CombatText.NewText(Main.LocalPlayer.getRect(), combatText.color, combatText.text);
 
@@ -192,14 +192,14 @@ namespace Nurser
 
         private int CalculateCoinCost(int currentHealth, int maxHealth, int coinCostPerHealth)
         {
-            int coinCost = (maxHealth - currentHealth) * coinCostPerHealth;
+            int coinCost = (maxHealth - currentHealth) * coinCostPerHealth;// change from 'MaxCoinsCost' to cost per health because idk easier to track and just a short cut to get the math more reasonable and easier to change
             return coinCost;
         }
 
         private bool HasEnoughCoins(int amount)
         {
             int totalCoins = GetTotalCoins(Main.LocalPlayer.inventory) + GetTotalCoins(Main.LocalPlayer.bank.item);
-            return totalCoins >= amount;
+            return totalCoins >= amount;// to calculate the amount of coins the player's have and if they have enough to purchase this
         }
 
         private int GetTotalCoins(Item[] items)
@@ -277,3 +277,4 @@ namespace Nurser
         }
     }
 }
+// If you take this code please use it for other things instead of stealing the mod i won't srtop you from doing tht but this is mostly used for helping dvelopers to use some objects that either been changed or difficult to find and implement for developers (meaning i will probably have to use something like this again in the future)
