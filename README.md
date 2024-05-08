@@ -37,7 +37,7 @@ This is Configurable because I wanted you to feel like you can have full control
 **Health Threshold**: An feauture to enable the player not having to press the Heal Keybind when health reaches a certain percent.
 
 Example could be that player has 500 health and the Threshold is set to 20% it will heal at 150 health.
-
+# Credits
 Contributions From The Authors Of
 
 VETERAN MODE https://github.com/DeroXP/VeteranMode-Terraria
