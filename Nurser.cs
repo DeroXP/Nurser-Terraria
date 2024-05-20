@@ -83,10 +83,15 @@ namespace Nurser
 
         public override void OnEnterWorld()
         {
-            Main.NewText("If you have an idea or issue/bug with this mods please go here and send a issue. (https://github.com/DeroXP/Nurser-Terraria/issues)", 255, 182, 193);
-            Main.NewText("Sorry for the multiple updates, if you're wondering why is because I use this mod to figure out how newer versions work.", 255, 182, 193);
-            Main.NewText("{From Nurser Mod:} Press " + HealKeyMod.HealKey.GetAssignedKeys()[0] + " or when health is at " + config.HealthThreshold + "% health to heal.", 121, 6, 4);
-        }
+            Task.Delay(6000);
+
+            Main.NewText("If you have an idea or issue/bug with this mod please go here and send an issue. (https://github.com/DeroXP/Nurser-Terraria/issues)", 255, 182, 193);
+            
+            var assignedKeys = HealKeyMod.HealKey.GetAssignedKeys();
+            string healKeyText = assignedKeys.Count > 0 ? assignedKeys[0] : "['UNBOUND' PLEASE ASSING KEY IN CONTROLS]";
+            
+            Main.NewText("{From Nurser Mod:} Press " + healKeyText + " or when health is at " + config.HealthThreshold + "% health to heal.", 121, 6, 4);
+        } // changed this for an issue, but remeber YOU MUST ASSIGN A KEY
 
         bool hasDisplayedMessage = false;
         public override void ProcessTriggers(TriggersSet triggers)
