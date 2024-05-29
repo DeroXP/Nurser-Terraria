@@ -25,18 +25,18 @@ namespace Nurser
         [TooltipArgs("$Config.HeartAcheDuration.Tooltip")]
         [System.ComponentModel.DefaultValue(120)]
         [Range(5, 600)]
-        public int HeartAcheDuration; // Duration of the HeartAche debuff
+        public int HeartAcheDuration; // Duration of the HeartAche debuff (in seconds)
 
         [LabelKey("$Config.CoinCostPerHealth.Label")]
         [TooltipArgs("$Config.CoinCostPerHealth.Tooltip")]
         [System.ComponentModel.DefaultValue(100)]
-        [Range(10, float.PositiveInfinity)]
+        [Range(10, float.PositiveInfinity)] // (lowest is 10 copper)
         public int CoinCostPerHealth; // Cost of health in coins
 
         [LabelKey("$Config.HealthThreshold.Label")]
         [TooltipArgs("$Config.HealthThreshold.Tooltip")]
         [System.ComponentModel.DefaultValue(20)]
-        [Range(1, 100)]
+        [Range(1, 100)] // percentage of health not health amount
         public int HealthThreshold; // Health percentage threshold for auto-healing
 
         [LabelKey("$Config.RequireBoss.Label")]
@@ -90,7 +90,7 @@ namespace Nurser
         // Method called when player enters the world
         public override void OnEnterWorld()
         {
-            // Delay to avoid immediate execution
+            // Delay to avoid immediate execution (it does it anyway lol)
             Task.Delay(6000);
 
             // Display mod info and instructions to the player
@@ -131,7 +131,7 @@ namespace Nurser
                         {
                             Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2; // Heal player to max health
 
-                            int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife;
+                            int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife; // should probably put this first lol
 
                             // Calculate coin breakdown
                             int platinum = coinCost / 1000000;
