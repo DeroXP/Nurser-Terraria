@@ -12,12 +12,11 @@ using tModPorter.Rewriters;
 using Terraria.Audio;
 using System.Threading.Tasks;
 
-namespace Nurser
+namespace Nurser // side note there isn't much explainations this time if you want more just go to earlier versions of this file on github
 {
-    // Configuration class for the mod
     public class Config : ModConfig
     {
-        public override ConfigScope Mode => ConfigScope.ClientSide; // Set config to client-side for multiplayer compatibility
+        public override ConfigScope Mode => ConfigScope.ClientSide; // could try to make this so it'll work server sided but am too lazy
 
         [Header("Configs")]
 
@@ -25,51 +24,56 @@ namespace Nurser
         [TooltipArgs("$Config.HeartAcheDuration.Tooltip")]
         [System.ComponentModel.DefaultValue(120)]
         [Range(5, 600)]
-        public int HeartAcheDuration; // Duration of the HeartAche debuff (in seconds)
+        public int HeartAcheDuration;
 
         [LabelKey("$Config.CoinCostPerHealth.Label")]
         [TooltipArgs("$Config.CoinCostPerHealth.Tooltip")]
         [System.ComponentModel.DefaultValue(100)]
-        [Range(10, float.PositiveInfinity)] // (lowest is 10 copper)
-        public int CoinCostPerHealth; // Cost of health in coins
+        [Range(10, float.PositiveInfinity)]
+        public int CoinCostPerHealth;
 
         [LabelKey("$Config.HealthThreshold.Label")]
         [TooltipArgs("$Config.HealthThreshold.Tooltip")]
         [System.ComponentModel.DefaultValue(20)]
-        [Range(1, 100)] // percentage of health not health amount
-        public int HealthThreshold; // Health percentage threshold for auto-healing
+        [Range(1, 100)]
+        public int HealthThreshold;
 
         [LabelKey("$Config.RequireBoss.Label")]
         [TooltipArgs("$Config.RequireBoss.Tooltip")]
         [System.ComponentModel.DefaultValue(false)]
-        public bool RequireBoss; // Whether a boss needs to be active for healing
+        public bool RequireBoss;
+
+        [LabelKey("$Config.CostMultiplier.Label")]
+        [TooltipArgs("$Config.CostMultiplier.Tooltip")]
+        [System.ComponentModel.DefaultValue(false)]
+        public bool CostMultiplier; //didn't have many ideas as of recent so quick and kinda forced update
+
+        [LabelKey("$Config.MultiplierAmount.Label")]
+        [TooltipArgs("$Config.MultiplierAmount.Tooltip")]
+        [System.ComponentModel.DefaultValue(2)]
+        public int MultiplierAmount;
     }
 
-    // Mod class to define a custom keybind
     public class HealKeyMod : Mod
     {
         #pragma warning disable CA2211
         public static ModKeybind HealKey;
         public override void Load()
         {
-            // Register a keybind for healing
             HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G);
         }
     }
 
-    // Class to track whether a boss is active
     public class NPCNuser : GlobalNPC
     {
         public static bool bossActive = false;
 
         public override void PostAI(NPC entity)
         {
-            // List of boss NPC IDs
             int[] bosses = { NPCID.KingSlime, NPCID.EyeofCthulhu, NPCID.EaterofWorldsHead, NPCID.BrainofCthulhu, NPCID.QueenBee, NPCID.SkeletronHead, NPCID.WallofFlesh, NPCID.Retinazer, NPCID.Spazmatism, NPCID.TheDestroyer, NPCID.SkeletronPrime, NPCID.Plantera, NPCID.Golem, NPCID.DukeFishron, NPCID.CultistBoss, NPCID.MoonLordCore };
 
             int npcType = entity.type;
 
-            // Check if any boss is active
             if (!entity.friendly && bosses.Contains(npcType) && entity.active || entity.boss && entity.active)
             {
                 bossActive = true;
@@ -81,19 +85,12 @@ namespace Nurser
         }
     }
 
-    // Class to handle player actions related to the mod
     public class HealKeyPlayer : ModPlayer
     {
-        // Get configuration instance
         Config config = ModContent.GetInstance<Config>();
 
-        // Method called when player enters the world
         public override void OnEnterWorld()
         {
-            // Delay to avoid immediate execution (it does it anyway lol)
-            Task.Delay(6000);
-
-            // Display mod info and instructions to the player
             Main.NewText("If you have an idea or issue/bug with this mod please go here and send an issue. (https://github.com/DeroXP/Nurser-Terraria/issues)", 255, 182, 193);
             
             var assignedKeys = HealKeyMod.HealKey.GetAssignedKeys();
@@ -103,13 +100,10 @@ namespace Nurser
         }
 
         bool hasDisplayedMessage = false;
-        // Method to process key triggers
         public override void ProcessTriggers(TriggersSet triggers)
         {
-            // Check if heal key is pressed or health is below threshold
             if (HealKeyMod.HealKey.JustPressed || IsHealthBelowThreshold(config.HealthThreshold / 100.0f))
             {
-                // Check if healing requires a boss to be active and if a boss is indeed active
                 if (config.RequireBoss && !NPCNuser.bossActive)
                 {
                     if (!hasDisplayedMessage)
@@ -120,26 +114,22 @@ namespace Nurser
                     return;
                 }
 
-                // Check if player has HeartAche debuff
                 if (!Player.HasBuff<HeartAche>())
                 {
                     int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2, config.CoinCostPerHealth);
-                    // Check if player has enough coins to heal
                     if (HasEnoughCoins(coinCost))
                     {
                         if (!Main.LocalPlayer.dead)
                         {
-                            Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2; // Heal player to max health
+                            Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2;
 
-                            int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife; // should probably put this first lol
+                            int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife;
 
-                            // Calculate coin breakdown
                             int platinum = coinCost / 1000000;
                             int gold = coinCost % 1000000 / 10000;
                             int silver = coinCost % 10000 / 100;
                             int copper = coinCost % 100;
 
-                            // Display coin cost message
                             string message = $"{platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins were spent.";
                             Color messageColor = new(224, 224, 224);
                             CombatText combatText = new()
@@ -149,15 +139,13 @@ namespace Nurser
                                 lifeTime = 150,
                                 scale = 2f
                             };
-
-                            // Display combat text
+                            
                             CombatText.NewText(Main.LocalPlayer.getRect(), combatText.color, combatText.text);
 
-                            Main.LocalPlayer.HealEffect(healedAmount); // Show heal effect
+                            Main.LocalPlayer.HealEffect(healedAmount);
 
-                            SubtractCoins(coinCost); // Subtract the coins from player inventory
+                            SubtractCoins(coinCost);
 
-                            // Create dust and play sound effects
                             for (int i = 0; i < 10; i++)
                             {
                                 Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.CoralTorch);
@@ -165,7 +153,7 @@ namespace Nurser
                             }
 
                             int buffDuration = config.HeartAcheDuration * 60;
-                            Player.AddBuff(ModContent.BuffType<HeartAche>(), buffDuration); // Add HeartAche debuff
+                            Player.AddBuff(ModContent.BuffType<HeartAche>(), buffDuration);
 
                             hasDisplayedMessage = false;
                         }
@@ -174,7 +162,6 @@ namespace Nurser
                     {
                         if (!hasDisplayedMessage)
                         {
-                            // Notify player if they don't have enough coins
                             int platinum = coinCost / 1000000;
                             int gold = coinCost % 1000000 / 10000;
                             int silver = coinCost % 10000 / 100;
@@ -189,7 +176,6 @@ namespace Nurser
                 {
                     if (!hasDisplayedMessage)
                     {
-                        // Notify player if they have HeartAche debuff
                         Main.NewText("You can't heal right now. Wait until HeartAche wears off.", 255, 50, 50);
                         hasDisplayedMessage = true;
                     }
@@ -197,28 +183,38 @@ namespace Nurser
             }
         }
 
-        // Helper method to check if health is below the threshold
         private bool IsHealthBelowThreshold(float threshold)
         {
             float healthPercentage = (float)Main.LocalPlayer.statLife / Main.LocalPlayer.statLifeMax2;
             return healthPercentage <= threshold;
         }
 
-        // Helper method to calculate coin cost based on missing health
         private int CalculateCoinCost(int currentHealth, int maxHealth, int coinCostPerHealth)
         {
             int coinCost = (maxHealth - currentHealth) * coinCostPerHealth;
+            double multiplier = config.MultiplierAmount;
+
+            if (config.CostMultiplier)
+            {
+                if (multiplier < 1)
+                {
+                    coinCost = (int)(coinCost / multiplier);
+                }
+                else
+                {
+                    coinCost = (int)(coinCost * multiplier);
+                }
+            }
+
             return coinCost;
         }
 
-        // Helper method to check if player has enough coins
         private bool HasEnoughCoins(int amount)
         {
             int totalCoins = GetTotalCoins(Main.LocalPlayer.inventory) + GetTotalCoins(Main.LocalPlayer.bank.item);
             return totalCoins >= amount;
         }
 
-        // Helper method to calculate total coins in player's inventory and piggy bank
         private int GetTotalCoins(Item[] items)
         {
             int totalCoins = 0;
@@ -243,7 +239,6 @@ namespace Nurser
             return totalCoins;
         }
 
-        // Helper method to subtract the specified amount of coins from inventory and piggy bank
         private void SubtractCoins(int amount)
         {
             int copperCoins = amount % 100;
@@ -257,10 +252,9 @@ namespace Nurser
             SubtractCoinsFromInventory(ItemID.PlatinumCoin, platinumCoins);
         }
 
-        // Helper method to subtract coins from a specific inventory (inventory or piggy bank)
         private bool SubtractCoinsFromInventory(int coinType, int amount)
         {
-            // Subtract coins from player inventory
+            // inventory
             for (int i = 0; i < Main.LocalPlayer.inventory.Length; i++)
             {
                 Item item = Main.LocalPlayer.inventory[i];
@@ -276,8 +270,54 @@ namespace Nurser
                 }
             }
 
-            // Subtract coins from piggy bank
+            // piggy bank
             for (int i = 0; i < Main.LocalPlayer.bank.item.Length; i++)
+            {
+                Item item = Main.LocalPlayer.bank.item[i];
+                if (item.type == coinType && item.stack > 0)
+                {
+                    int coinsToSubtract = Math.Min(item.stack, amount);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // other stuff :shrug:
+            for (int i = 0; i < Main.LocalPlayer.bank2.item.Length; i++)
+            {
+                Item item = Main.LocalPlayer.bank.item[i];
+                if (item.type == coinType && item.stack > 0)
+                {
+                    int coinsToSubtract = Math.Min(item.stack, amount);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            for (int i = 0; i < Main.LocalPlayer.bank3.item.Length; i++)
+            {
+                Item item = Main.LocalPlayer.bank.item[i];
+                if (item.type == coinType && item.stack > 0)
+                {
+                    int coinsToSubtract = Math.Min(item.stack, amount);
+                    item.stack -= coinsToSubtract;
+                    amount -= coinsToSubtract;
+                    if (amount <= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            for (int i = 0; i < Main.LocalPlayer.bank4.item.Length; i++)
             {
                 Item item = Main.LocalPlayer.bank.item[i];
                 if (item.type == coinType && item.stack > 0)
@@ -296,4 +336,3 @@ namespace Nurser
         }
     }
 }
-//chatgpt used for side notes, made by me :D
