@@ -37,5 +37,7 @@ Configs: {
 		HealthThreshold.Tooltip: Sets the health threshold for the heal to be triggered automactically (Default 20%).
 		RequireBoss.Tooltip: If enabled, player can only heal if a boss NPC is active.
 		Headers.Configs: Customizations
+		CostMultiplier.Tooltip: When enabled this will multiply the cost of your healing, with the more health you have.
+		MultiplierAmount.Tooltip: Only works when Cost Multiplier is enabled!
 	}
 }
