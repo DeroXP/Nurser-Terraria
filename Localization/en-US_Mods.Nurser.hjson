@@ -27,6 +27,16 @@ Config: {
 		Label: Duration for HeartAche Buff (in seconds)
 		Tooltip: Sets the duration for the HeartAche buff in seconds.
 	}
+
+	CostMultiplier: {
+		Label: Cost Multiplier
+		Tooltip: When enabled, multiplies the healing cost by the Multiplier Amount.
+	}
+
+	MultiplierAmount: {
+		Label: Multiplier Amount
+		Tooltip: The factor the healing cost is multiplied by (only used when Cost Multiplier is enabled).
+	}
 }
 
 Configs: {
