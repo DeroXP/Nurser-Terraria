@@ -51,6 +51,7 @@ namespace Nurser // side note there isn't much explainations this time if you wa
         [LabelKey("$Config.MultiplierAmount.Label")]
         [TooltipArgs("$Config.MultiplierAmount.Tooltip")]
         [System.ComponentModel.DefaultValue(2)]
+        [Range(1, 100)]
         public int MultiplierAmount;
     }
 
@@ -61,27 +62,6 @@ namespace Nurser // side note there isn't much explainations this time if you wa
         public override void Load()
         {
             HealKey = KeybindLoader.RegisterKeybind(this, "Heal Key", Keys.G);
-        }
-    }
-
-    public class NPCNuser : GlobalNPC
-    {
-        public static bool bossActive = false;
-
-        public override void PostAI(NPC entity)
-        {
-            int[] bosses = { NPCID.KingSlime, NPCID.EyeofCthulhu, NPCID.EaterofWorldsHead, NPCID.BrainofCthulhu, NPCID.QueenBee, NPCID.SkeletronHead, NPCID.WallofFlesh, NPCID.Retinazer, NPCID.Spazmatism, NPCID.TheDestroyer, NPCID.SkeletronPrime, NPCID.Plantera, NPCID.Golem, NPCID.DukeFishron, NPCID.CultistBoss, NPCID.MoonLordCore };
-
-            int npcType = entity.type;
-
-            if (!entity.friendly && bosses.Contains(npcType) && entity.active || entity.boss && entity.active)
-            {
-                bossActive = true;
-            }
-            else
-            {
-                bossActive = false;
-            }
         }
     }
 
@@ -104,7 +84,7 @@ namespace Nurser // side note there isn't much explainations this time if you wa
         {
             if (HealKeyMod.HealKey.JustPressed || IsHealthBelowThreshold(config.HealthThreshold / 100.0f))
             {
-                if (config.RequireBoss && !NPCNuser.bossActive)
+                if (config.RequireBoss && !IsBossActive())
                 {
                     if (!hasDisplayedMessage)
                     {
@@ -116,58 +96,42 @@ namespace Nurser // side note there isn't much explainations this time if you wa
 
                 if (!Player.HasBuff<HeartAche>())
                 {
-                    int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2, config.CoinCostPerHealth);
-                    if (HasEnoughCoins(coinCost))
+                    if (Main.LocalPlayer.dead || Main.LocalPlayer.statLife >= Main.LocalPlayer.statLifeMax2)
                     {
-                        if (!Main.LocalPlayer.dead)
+                        // Nothing to heal: avoid charging the player or applying HeartAche for free.
+                        return;
+                    }
+
+                    int coinCost = CalculateCoinCost(Main.LocalPlayer.statLife, Main.LocalPlayer.statLifeMax2, config.CoinCostPerHealth);
+                    if (Main.LocalPlayer.CanBuyItem(coinCost))
+                    {
+                        int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife;
+                        Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2;
+
+                        string message = FormatCoins(coinCost) + " were spent.";
+                        Color messageColor = new(224, 224, 224);
+                        CombatText.NewText(Main.LocalPlayer.getRect(), messageColor, message);
+
+                        Main.LocalPlayer.HealEffect(healedAmount);
+
+                        Main.LocalPlayer.BuyItem(coinCost);
+
+                        SoundEngine.PlaySound(SoundID.Item29);
+                        for (int i = 0; i < 10; i++)
                         {
-                            Main.LocalPlayer.statLife = Main.LocalPlayer.statLifeMax2;
-
-                            int healedAmount = Main.LocalPlayer.statLifeMax2 - Main.LocalPlayer.statLife;
-
-                            int platinum = coinCost / 1000000;
-                            int gold = coinCost % 1000000 / 10000;
-                            int silver = coinCost % 10000 / 100;
-                            int copper = coinCost % 100;
-
-                            string message = $"{platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins were spent.";
-                            Color messageColor = new(224, 224, 224);
-                            CombatText combatText = new()
-                            {
-                                text = message,
-                                color = messageColor,
-                                lifeTime = 150,
-                                scale = 2f
-                            };
-                            
-                            CombatText.NewText(Main.LocalPlayer.getRect(), combatText.color, combatText.text);
-
-                            Main.LocalPlayer.HealEffect(healedAmount);
-
-                            SubtractCoins(coinCost);
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.CoralTorch);
-                                SoundEngine.PlaySound(SoundID.Item29);
-                            }
-
-                            int buffDuration = config.HeartAcheDuration * 60;
-                            Player.AddBuff(ModContent.BuffType<HeartAche>(), buffDuration);
-
-                            hasDisplayedMessage = false;
+                            Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.CoralTorch);
                         }
+
+                        int buffDuration = config.HeartAcheDuration * 60;
+                        Player.AddBuff(ModContent.BuffType<HeartAche>(), buffDuration);
+
+                        hasDisplayedMessage = false;
                     }
                     else
                     {
                         if (!hasDisplayedMessage)
                         {
-                            int platinum = coinCost / 1000000;
-                            int gold = coinCost % 1000000 / 10000;
-                            int silver = coinCost % 10000 / 100;
-                            int copper = coinCost % 100;
-
-                            Main.NewText($"You don't have enough coins, {platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins needed!", 255, 50, 50);
+                            Main.NewText($"You don't have enough coins, {FormatCoins(coinCost)} needed!", 255, 50, 50);
                             hasDisplayedMessage = true;
                         }
                     }
@@ -192,147 +156,40 @@ namespace Nurser // side note there isn't much explainations this time if you wa
         private int CalculateCoinCost(int currentHealth, int maxHealth, int coinCostPerHealth)
         {
             int coinCost = (maxHealth - currentHealth) * coinCostPerHealth;
-            double multiplier = config.MultiplierAmount;
 
-            if (config.CostMultiplier)
+            if (config.CostMultiplier && config.MultiplierAmount > 0)
             {
-                if (multiplier < 1)
-                {
-                    coinCost = (int)(coinCost / multiplier);
-                }
-                else
-                {
-                    coinCost = (int)(coinCost * multiplier);
-                }
+                coinCost *= config.MultiplierAmount;
             }
 
             return coinCost;
         }
 
-        private bool HasEnoughCoins(int amount)
+        // Returns true if any boss-type NPC is currently active anywhere in the world.
+        private static bool IsBossActive()
         {
-            int totalCoins = GetTotalCoins(Main.LocalPlayer.inventory) + GetTotalCoins(Main.LocalPlayer.bank.item);
-            return totalCoins >= amount;
-        }
+            int[] bosses = { NPCID.KingSlime, NPCID.EyeofCthulhu, NPCID.EaterofWorldsHead, NPCID.BrainofCthulhu, NPCID.QueenBee, NPCID.SkeletronHead, NPCID.WallofFlesh, NPCID.Retinazer, NPCID.Spazmatism, NPCID.TheDestroyer, NPCID.SkeletronPrime, NPCID.Plantera, NPCID.Golem, NPCID.DukeFishron, NPCID.CultistBoss, NPCID.MoonLordCore };
 
-        private int GetTotalCoins(Item[] items)
-        {
-            int totalCoins = 0;
-            foreach (Item item in items)
+            foreach (NPC npc in Main.npc)
             {
-                switch (item.type)
+                if (npc.active && !npc.friendly && (npc.boss || bosses.Contains(npc.type)))
                 {
-                    case ItemID.CopperCoin:
-                        totalCoins += item.stack;
-                        break;
-                    case ItemID.SilverCoin:
-                        totalCoins += item.stack * 100;
-                        break;
-                    case ItemID.GoldCoin:
-                        totalCoins += item.stack * 10000;
-                        break;
-                    case ItemID.PlatinumCoin:
-                        totalCoins += item.stack * 1000000;
-                        break;
-                }
-            }
-            return totalCoins;
-        }
-
-        private void SubtractCoins(int amount)
-        {
-            int copperCoins = amount % 100;
-            int silverCoins = amount / 100 % 100;
-            int goldCoins = amount / 10000 % 100;
-            int platinumCoins = amount / 1000000;
-
-            SubtractCoinsFromInventory(ItemID.CopperCoin, copperCoins);
-            SubtractCoinsFromInventory(ItemID.SilverCoin, silverCoins);
-            SubtractCoinsFromInventory(ItemID.GoldCoin, goldCoins);
-            SubtractCoinsFromInventory(ItemID.PlatinumCoin, platinumCoins);
-        }
-
-        private bool SubtractCoinsFromInventory(int coinType, int amount)
-        {
-            // inventory
-            for (int i = 0; i < Main.LocalPlayer.inventory.Length; i++)
-            {
-                Item item = Main.LocalPlayer.inventory[i];
-                if (item.type == coinType && item.stack > 0)
-                {
-                    int coinsToSubtract = Math.Min(item.stack, amount);
-                    item.stack -= coinsToSubtract;
-                    amount -= coinsToSubtract;
-                    if (amount <= 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            // piggy bank
-            for (int i = 0; i < Main.LocalPlayer.bank.item.Length; i++)
-            {
-                Item item = Main.LocalPlayer.bank.item[i];
-                if (item.type == coinType && item.stack > 0)
-                {
-                    int coinsToSubtract = Math.Min(item.stack, amount);
-                    item.stack -= coinsToSubtract;
-                    amount -= coinsToSubtract;
-                    if (amount <= 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            // other stuff :shrug:
-            for (int i = 0; i < Main.LocalPlayer.bank2.item.Length; i++)
-            {
-                Item item = Main.LocalPlayer.bank.item[i];
-                if (item.type == coinType && item.stack > 0)
-                {
-                    int coinsToSubtract = Math.Min(item.stack, amount);
-                    item.stack -= coinsToSubtract;
-                    amount -= coinsToSubtract;
-                    if (amount <= 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            for (int i = 0; i < Main.LocalPlayer.bank3.item.Length; i++)
-            {
-                Item item = Main.LocalPlayer.bank.item[i];
-                if (item.type == coinType && item.stack > 0)
-                {
-                    int coinsToSubtract = Math.Min(item.stack, amount);
-                    item.stack -= coinsToSubtract;
-                    amount -= coinsToSubtract;
-                    if (amount <= 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            for (int i = 0; i < Main.LocalPlayer.bank4.item.Length; i++)
-            {
-                Item item = Main.LocalPlayer.bank.item[i];
-                if (item.type == coinType && item.stack > 0)
-                {
-                    int coinsToSubtract = Math.Min(item.stack, amount);
-                    item.stack -= coinsToSubtract;
-                    amount -= coinsToSubtract;
-                    if (amount <= 0)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
             return false;
+        }
+
+        // Formats a copper-denominated amount into a "P platinum, G gold, S silver, and C copper coins" string.
+        private static string FormatCoins(int amount)
+        {
+            int platinum = amount / 1000000;
+            int gold = amount % 1000000 / 10000;
+            int silver = amount % 10000 / 100;
+            int copper = amount % 100;
+
+            return $"{platinum} platinum, {gold} gold, {silver} silver, and {copper} copper coins";
         }
     }
 }

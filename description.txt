@@ -1,0 +1,13 @@
+Nurser lets you use Nurse-style healing anywhere in the world, balanced by anti-cheat configs to keep the game fair.
+
+Press the Heal Key (default G) or drop below a configurable health threshold to heal back to full. In exchange, the Nurse taxes you coins for the amount of health restored and applies the "Heart Ache" debuff (reduced life regen) for a configurable duration.
+
+Configurable options:
+- Cost Per Health: coins charged per missing health point.
+- Heart Ache Duration: how long the debuff lasts (in seconds).
+- Health Threshold: auto-heal trigger percentage.
+- Require Boss: only allow healing while a boss is active.
+- Cost Multiplier / Multiplier Amount: scale the healing cost.
+
+Open-source: https://github.com/DeroXP/Nurser-Terraria
+Report issues: https://github.com/DeroXP/Nurser-Terraria/issues

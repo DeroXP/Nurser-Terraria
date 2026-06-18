@@ -1,44 +1,52 @@
 # Nurser-Terraria
-Okay so to see how exactly this was made just download from the release, but please check the code in github and check with the files you downloaded to make sure they're up-to-date.
 
-This mod was made for Nurse mechanics but anywhere using either a config Key or automactically with set Health Threshold.
-Since there isn't alot of help with terraria modding (espically with the new preview versions.) for starting dev's like I was this is something to reference on like for example Configs, Config Headers, New DisplayName and Tooltips, Buffs, ModKeybinds, Npc's, Items, Chest Loot(Only in download), Getting Coins either in bank or inventory, and simple math.
+A tModLoader mod that brings Nurse-style healing anywhere in the world, kept fair with a set of anti-cheat configs.
 
-Side Note: In the downloaded version of this nurser build there is a thing thats shows how to open links if you ever thought about or needed it.
+To see exactly how it was made, download it from the release, but please also check the code here on GitHub against the files you downloaded to make sure they're up to date.
 
-Orignal Mod: [Nurser](https://steamcommunity.com/sharedfiles/filedetails/?id=3234638824)
+Since there isn't a lot of help out there for Terraria modding (especially on the newer preview versions) for starting devs like I was, this repo is meant as a reference for things like: Configs, Config Headers, custom DisplayNames and Tooltips, Buffs, ModKeybinds, NPCs, Items, Chest Loot (only in the download), getting coins from the bank or inventory, and some simple math.
 
-From Derourn. (I will probably start making tutorials for Terraria Modding)
+Side note: the downloaded version of this build includes an example of how to open links, in case you ever need it.
 
-Some Contributions from Maxhax64
+Original Mod: [Nurser](https://steamcommunity.com/sharedfiles/filedetails/?id=3234638824)
+
+From Derourn. (I'll probably start making Terraria modding tutorials.)
+
+Some contributions from Maxhax64.
 
 # Info
-Nurser was made just because.
-And to allow player to use a nurse NPC type of logic anywhere but with anti-cheating configs, to keep the game more fair. Basically Nurser heals you up all the way back to full health and then
-once you've healed nurse taxes you for the amount of health healed, which can be configurable via Mod Settings. The intended use for Nurser Dev-Testing, Project referencing, and General Playing.
-Nurser is open-source to the public and will be updated every once in a while, most updates are for bug fixes, but if Nurser has updated in a while is because their will be a big one that won't be updated until it is fully working and finished. This may not mean there won't be any bugs, dev team has two people in it one a programmar one a manager. zThis recent version should work for Tmodloader v2024.4.2.0 and a lil buggy for v2024.3.2.5 previews, because i can't update it for v2024.3.2.5 for some reason.
 
-### Configurations
+Nurser was made just because — and to let players use Nurse-NPC logic anywhere, but with anti-cheat configs to keep the game fair. Basically, Nurser heals you all the way back to full health, then taxes you for the amount of health healed (configurable via Mod Settings). The intended use is dev-testing, project referencing, and general play.
 
-**Cost Per Health**: This option is adjustable by numbers so you can set the cost yourself, the default is set to 100 or 1 silver coin
+Nurser is open-source and updated every once in a while. Most updates are bug fixes; if it hasn't updated in a while, it's usually because a bigger update is in progress and won't ship until it's fully working. This doesn't guarantee a bug-free experience — the dev team is two people, one programmer and one manager.
 
-Their is math to the coins for example
-1. 1 = copper coin
-2. 100 = silver coin
-3. 10000 = gold coin
-4. 1000000 = platinum coin
+# Building
 
-This is Configurable because I wanted you to feel like you can have full control with this mod
+This is a standard tModLoader mod. Place the repository folder inside your tModLoader `ModSources` directory and build it in-game via **Workshop → Develop Mods**. The `build.txt` file holds the mod metadata (author, version, display name).
 
-**Debuff Duration**: The Duration in seconds of how long the 'Heart Ache' Debuff lasts, from a range from 15 seconds to 10 minutes.
+# Configurations
 
-**Boss Required**: This is to the keep the mod from being more cheaty than it already is, because this would ruin the fun of playing the game (and requested by Maxhax64).
+**Cost Per Health**: Adjustable, so you can set the cost yourself. The default is `100`, which is 1 silver coin per missing health point.
 
-**Health Threshold**: An feauture to enable the player not having to press the Heal Keybind when health reaches a certain percent.
+The coin math works like this:
+1. `1` = copper coin
+2. `100` = silver coin
+3. `10000` = gold coin
+4. `1000000` = platinum coin
 
-Example could be that player has 500 health and the Threshold is set to 20% it will heal at 150 health.
+It's configurable because I wanted you to feel in full control of the mod.
+
+**Heart Ache Duration**: How long the "Heart Ache" debuff lasts, in seconds (range: 5 seconds to 10 minutes).
+
+**Require Boss**: Keeps the mod from being even cheatier — healing on demand would ruin the challenge (requested by Maxhax64). When enabled, you can only heal while a boss is active.
+
+**Health Threshold**: Lets the heal trigger automatically when your health drops below a set percentage, so you don't have to press the Heal Key. Example: if you have 500 max health and the threshold is 20%, it heals once you hit 100 health.
+
+**Cost Multiplier / Multiplier Amount**: When the multiplier is enabled, the healing cost is multiplied by the Multiplier Amount.
+
 # Credits
-Contributions From The Authors Of
+
+Contributions from the authors of
 
 VETERAN MODE https://github.com/DeroXP/VeteranMode-Terraria
 
